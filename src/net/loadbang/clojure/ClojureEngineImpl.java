@@ -71,13 +71,10 @@ public class ClojureEngineImpl extends EngineImpl {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
-	@Override
-	public void exec(String statement) {
-		Reader reader = null;
-		
+	
+	private Object evaluate(String statement) throws Exception {
 		try {
-			reader = new StringReader(statement);
+			Reader reader = new StringReader(statement);
 	
 			Var.pushThreadBindings(
 					RT.map(RT.CURRENT_NS, RT.CURRENT_NS.deref(),
@@ -87,30 +84,50 @@ public class ClojureEngineImpl extends EngineImpl {
 					);
 				
 			IN_NS.invoke(USER_SYM);
-			/*ignore*/ Compiler.load(reader);
-		} catch (Exception exn) {
-			getProxy().error(exn.toString());
+			return Compiler.load(reader);
 		} finally {
 			Var.popThreadBindings();
 		}
 	}
 
 	@Override
-	public void eval(String statement) {
-		// TODO Auto-generated method stub
-		
+	public void exec(String statement) {
+		try {
+			/*ignore*/ evaluate(statement);
+		} catch (Exception exn) {
+			getProxy().error(exn.toString());
+		}
 	}
 
 	@Override
+	public void eval(String statement) {
+		try {
+			Object obj = evaluate(statement);
+			getProxy().outlet(0, obj);
+		} catch (Exception exn) {
+			getProxy().error(exn.toString());
+		}
+	}
+
+	/** Invoke a function followed by a set of arguments (Atoms).
+	 	We frig this slightly to allow a special form: if the "fn" begins
+	 	with "(" we assume the entire input is a Clojure form and do
+	 	an eval(), ignoring the inlet number.
+
+	 	@see net.loadbang.scripting.EngineImpl#invoke(java.lang.String, java.lang.Integer, com.cycling74.max.Atom[])
+	 */
+
+	@Override
 	public void invoke(String fn, Integer inlet00, Atom[] args) {
-		// TODO Auto-generated method stub
-		
+		if (fn.startsWith("(")) {
+			eval(fn + " " + Atom.toOneString(args));
+		} else {
+			//	TODO
+		}
 	}
 
 	@Override
 	public void unwindCallbacks() {
 		// TODO Auto-generated method stub
-		
 	}
-
 }
