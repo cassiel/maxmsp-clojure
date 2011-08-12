@@ -1,7 +1,7 @@
 //	$Id: ClojureSearchTests.java,v ed81c5a46a05 2011/05/09 17:11:52 nick $
 //	$Source: /Users/nick/workspace/MaxMSP/DEVELOPMENT_0/mxj-development/jsr223/java/integration-tests/net/loadbang/jsr223/tests/console/ClojureSearchTests.java,v $
 
-package net.loadbang.clojure.tests.console;
+package net.loadbang.clojure.tests.jsr223.console;
 
 import java.io.File;
 import java.io.FileReader;
@@ -14,7 +14,7 @@ import java.util.ResourceBundle;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 
-import org.junit.Test;
+import org.junit.Ignore;
 
 public class ClojureSearchTests {
 	private void extendClasspath(File newDir) throws Exception {
@@ -26,7 +26,7 @@ public class ClojureSearchTests {
 		Thread.currentThread().setContextClassLoader(urlClassLoader);
 	}
 
-	@Test
+	@Ignore
 	public void loadViaClasspath() throws Exception {
 		ResourceBundle bundle = ResourceBundle.getBundle("net.loadbang.jsr223.props.TEST_CONFIG");
 		String baseDir = bundle.getString("TEST_SCRIPT_BASE");

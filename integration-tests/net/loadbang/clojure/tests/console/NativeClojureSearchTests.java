@@ -95,10 +95,9 @@ public class NativeClojureSearchTests {
         return null;
     }
 
-
 	@Test
 	public void loadViaClasspath() throws Exception {
-		ResourceBundle bundle = ResourceBundle.getBundle("net.loadbang.jsr223.props.TEST_CONFIG");
+		ResourceBundle bundle = ResourceBundle.getBundle("net.loadbang.clojure.props.TEST_CONFIG");
 		String baseDir = bundle.getString("TEST_SCRIPT_BASE");
 		System.out.println(baseDir);
 		File location = new File(baseDir, "location1");

@@ -1,9 +1,9 @@
 //	$Id: PythonSearchTests.java,v dfaf5b82b9c7 2011/05/09 16:17:12 nick $
 //	$Source: /Users/nick/workspace/MaxMSP/DEVELOPMENT_0/mxj-development/jsr223/java/integration-tests/net/loadbang/jsr223/tests/console/PythonSearchTests.java,v $
 
-package net.loadbang.clojure.tests.console;
+package net.loadbang.clojure.tests.jsr223.console;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileReader;
@@ -16,9 +16,8 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.SimpleBindings;
-import javax.script.SimpleScriptContext;
 
-import org.junit.Test;
+import org.junit.Ignore;
 
 public class PythonSearchTests {
 	private Bindings itsInitialScope00 = null;
@@ -58,7 +57,7 @@ public class PythonSearchTests {
 		
 	}
 
-	@Test
+	@Ignore
 	public void enginePathsAreDistinct() throws Exception {
 		ResourceBundle bundle = ResourceBundle.getBundle("net.loadbang.jsr223.props.TEST_CONFIG");
 		String baseDir = bundle.getString("TEST_SCRIPT_BASE");

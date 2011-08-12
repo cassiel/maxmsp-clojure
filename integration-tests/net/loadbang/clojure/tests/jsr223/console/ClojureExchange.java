@@ -1,7 +1,7 @@
 //	$Id: ClojureExchange.java,v dfaf5b82b9c7 2011/05/09 16:17:12 nick $
 //	$Source: /Users/nick/workspace/MaxMSP/DEVELOPMENT_0/mxj-development/jsr223/java/integration-tests/net/loadbang/jsr223/tests/console/ClojureExchange.java,v $
 
-package net.loadbang.clojure.tests.console;
+package net.loadbang.clojure.tests.jsr223.console;
 
 import java.io.File;
 import java.util.Map;
