@@ -1,7 +1,7 @@
 //	$Id: NativeClojureSearchTests.java,v 4decded1efde 2011/05/09 19:56:40 nick $
 //	$Source: /Users/nick/workspace/MaxMSP/DEVELOPMENT_0/mxj-development/jsr223/java/integration-tests/net/loadbang/jsr223/tests/console/NativeClojureSearchTests.java,v $
 
-package net.loadbang.clojure.tests.console;
+package net.loadbang.clojure.tests.integration;
 
 import java.io.File;
 import java.io.FileReader;
@@ -105,6 +105,7 @@ public class NativeClojureSearchTests {
 		put("injected", 12345);
 		Object obj = run(new File(location, "main.clj"));
 		System.out.println(obj.toString());
-		Object xxx = find00("xxx");		
+		Object xxx = find00("xxx");
+		System.out.println(xxx.getClass().toString());
 	}
 }

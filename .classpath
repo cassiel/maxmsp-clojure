@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry excluding="integration-tests/|properties/|unit-tests/" kind="src" path=""/>
-	<classpathentry kind="src" path="unit-tests/properties"/>
-	<classpathentry kind="src" path="properties"/>
-	<classpathentry kind="src" path="integration-tests"/>
-	<classpathentry excluding="properties/" kind="src" path="unit-tests"/>
+	<classpathentry kind="src" path="src/properties"/>
+	<classpathentry kind="src" path="src/unit-tests/properties"/>
+	<classpathentry kind="src" path="src/integration-tests"/>
+	<classpathentry excluding="properties/" kind="src" path="src/unit-tests"/>
+	<classpathentry excluding="unit-tests/|integration-tests/|unit-tests/properties/|properties/" kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="/Users/nick/.m2/repository/org/clojure/clojure/1.2.1/clojure-1.2.1.jar"/>
 	<classpathentry kind="lib" path="/3rd-party/jmock/hamcrest-library-1.1.jar"/>
 	<classpathentry kind="lib" path="/3rd-party/jmock/jmock-2.4.0.jar"/>
 	<classpathentry kind="lib" path="/3rd-party/jmock/jmock-junit4-2.4.0.jar"/>
 	<classpathentry kind="lib" path="/3rd-party/junit/junit-4.4.jar"/>
+	<classpathentry kind="lib" path="/Users/nick/.m2/repository/com/cycling74/com.cycling74.max/5.1.9/com.cycling74.max-5.1.9.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/MXJ-library"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/MXJ-scripting"/>
 	<classpathentry kind="output" path=".classes"/>
 </classpath>
