@@ -13,6 +13,7 @@ import net.loadbang.scripting.MaxObjectProxy;
 import net.loadbang.scripting.util.Converters;
 import clojure.lang.Compiler;
 import clojure.lang.LineNumberingPushbackReader;
+import clojure.lang.Namespace;
 import clojure.lang.RT;
 import clojure.lang.Symbol;
 import clojure.lang.Var;
@@ -21,7 +22,9 @@ import com.cycling74.max.Atom;
 
 public class ClojureEngineImpl extends EngineImpl {
 	static final Symbol USER_SYM = Symbol.create("user");
-	static final Var    IN_NS    = RT.var("clojure.core", "in-ns");
+	static final Var IN_NS = RT.var("clojure.core", "in-ns");
+	static final Namespace MAX_NS = Namespace.findOrCreate(Symbol.intern("max"));
+	static final Var MAX_OBJECT = Var.intern(MAX_NS, Symbol.intern("maxObject"), null);
 
 	public ClojureEngineImpl(MaxObjectProxy proxy) {
 		super(proxy);
@@ -77,7 +80,8 @@ public class ClojureEngineImpl extends EngineImpl {
 			Reader reader = new StringReader(statement);
 	
 			Var.pushThreadBindings(
-					RT.map(RT.CURRENT_NS, RT.CURRENT_NS.deref(),
+					RT.map(MAX_OBJECT, getProxy(),
+						   RT.CURRENT_NS, RT.CURRENT_NS.deref(),
 						   RT.IN, new LineNumberingPushbackReader(reader),
 						   RT.OUT, new OutputStreamWriter(System.out),
 						   RT.ERR, new OutputStreamWriter(System.err))

@@ -11,8 +11,6 @@ import net.loadbang.scripting.ScriptEngineBase;
 import com.cycling74.max.Atom;
 
 public class Clojure extends ScriptEngineBase {
-	private ClojureEngineImpl itsEngine;
-
 	protected Clojure(Atom[] args) {
 		super("$Id$",
 				  "net.loadbang.clojure",
