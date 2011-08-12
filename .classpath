@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path=""/>
+	<classpathentry excluding="integration-tests/|properties/|unit-tests/" kind="src" path=""/>
+	<classpathentry kind="src" path="unit-tests/properties"/>
+	<classpathentry kind="src" path="properties"/>
+	<classpathentry kind="src" path="integration-tests"/>
+	<classpathentry excluding="properties/" kind="src" path="unit-tests"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path=".classes"/>
 </classpath>
