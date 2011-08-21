@@ -1,4 +1,4 @@
-//	$Id: ClojureSearchTests.java,v ed81c5a46a05 2011/05/09 17:11:52 nick $
+//	$Id$
 //	$Source: /Users/nick/workspace/MaxMSP/DEVELOPMENT_0/mxj-development/jsr223/java/integration-tests/net/loadbang/jsr223/tests/console/ClojureSearchTests.java,v $
 
 package net.loadbang.clojure.tests.jsr223.console;
