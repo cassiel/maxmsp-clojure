@@ -3,10 +3,13 @@
 
 package net.loadbang.clojure;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
+import java.net.URL;
+import java.net.URLClassLoader;
 
 import net.loadbang.scripting.EngineImpl;
 import net.loadbang.scripting.MaxObjectProxy;
@@ -26,30 +29,76 @@ public class ClojureEngineImpl extends EngineImpl {
 	static final Namespace MAX_NS = Namespace.findOrCreate(Symbol.intern("max"));
 	static final Var MAX_OBJECT = Var.intern(MAX_NS, Symbol.intern("maxObject"), null);
 
+	/**	The directory for any place-holder. */
+	private String itsPlaceHolderDirectory00;
+	
+	/**	Create an instance of a Clojure engine.
+
+		@param proxy a proxy for the owning {@link MaxObject}.
+	 */
+
 	public ClojureEngineImpl(MaxObjectProxy proxy) {
 		super(proxy);
-		// TODO Auto-generated constructor stub
 	}
 
+	/**	Clear the environment. Since we only have one Clojure
+	 	interpreter it's not clear that this means anything,
+	 	but we might want to clear any on-delete functions.
+
+	 	@see net.loadbang.scripting.Engine#clear()
+	 */
+	
 	public void clear() {
-		// TODO Auto-generated method stub
-		
+		// TODO Auto-generated method stub	
 	}
+
+	/**	Run a script from a file in a given directory,
+	 	the latter provided for a search path. This
+	 	search path should be considered transient;
+	 	the "real" search path is set by the place-holder.
+	 	
+	 	@see net.loadbang.scripting.Engine#runScript(java.lang.String, java.lang.String)
+	 */
 
 	public void runScript(String directory, String filename) {
 		// TODO Auto-generated method stub
-		
 	}
 
+	/**	Run a script file with a path rooted on the
+	 	current place-holder.
+	 	
+	 	@see net.loadbang.scripting.Engine#runUsingPlaceHolder(java.lang.String)
+	 */
+
 	public void runUsingPlaceHolder(String name) {
-		// TODO Auto-generated method stub
-		
+		if (itsPlaceHolderDirectory00 == null) {
+			getProxy().error("engine not loaded: place-holder problem?");
+		} else {
+			try {
+				Compiler.loadFile(new File(itsPlaceHolderDirectory00, name)
+								  .getCanonicalPath()
+								 );
+			} catch (Exception exn) {
+				getProxy().error(exn.getMessage());
+				exn.printStackTrace();
+			}
+		}
 	}
+
+	/**	Add (stack) a cleanup function.
+
+	 	@see net.loadbang.scripting.Engine#addCleanup(java.lang.Object)
+	 */
 
 	public void addCleanup(Object obj) {
 		// TODO Auto-generated method stub
-		
 	}
+
+	/**	Data converters. Generally universal, but (probably) with
+	  	some Clojure-specific routines.
+	  	
+	 	@see net.loadbang.scripting.EngineImpl#getConverters()
+	 */
 
 	@Override
 	protected Converters getConverters() {
@@ -57,10 +106,24 @@ public class ClojureEngineImpl extends EngineImpl {
 		return null;
 	}
 
+	//// XXX TEST!
+	private void extendClasspath(File newDir) throws Exception {
+		ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
+		
+		URLClassLoader urlClassLoader =
+			new URLClassLoader(new URL[] { newDir.toURI().toURL() },  currentClassLoader);
+		
+		Thread.currentThread().setContextClassLoader(urlClassLoader);
+	}
+
 	@Override
 	public void setupEngineOnPlaceHolder(String directory) throws IOException {
-		// TODO Auto-generated method stub
-		
+		try {
+			extendClasspath(new File(directory));
+			itsPlaceHolderDirectory00 = directory;
+		} catch (Exception exn) {
+			throw new IOException("error extending classpath", exn);
+		}
 	}
 
 	@Override
