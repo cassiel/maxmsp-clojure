@@ -4,16 +4,15 @@
 package net.loadbang.clojure;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.net.MalformedURLException;
 
 import net.loadbang.scripting.EngineImpl;
 import net.loadbang.scripting.MaxObjectProxy;
 import net.loadbang.scripting.util.Converters;
+
 import clojure.lang.Compiler;
 import clojure.lang.LineNumberingPushbackReader;
 import clojure.lang.Namespace;
@@ -22,6 +21,7 @@ import clojure.lang.Symbol;
 import clojure.lang.Var;
 
 import com.cycling74.max.Atom;
+import com.cycling74.max.MaxObject;
 
 public class ClojureEngineImpl extends EngineImpl {
 	static final Symbol USER_SYM = Symbol.create("user");
@@ -30,7 +30,7 @@ public class ClojureEngineImpl extends EngineImpl {
 	static final Var MAX_OBJECT = Var.intern(MAX_NS, Symbol.intern("maxObject"), null);
 
 	/**	The directory for any place-holder. */
-	private String itsPlaceHolderDirectory00;
+	private File itsPlaceHolderDirectory00;
 	
 	/**	Create an instance of a Clojure engine.
 
@@ -51,6 +51,41 @@ public class ClojureEngineImpl extends EngineImpl {
 	public void clear() {
 		// TODO Auto-generated method stub	
 	}
+	
+	/**	Run a script file in a given directory. The directory is
+	 	(temporarily) made the root of a classpath entry so that
+	 	libraries can be found relative to the directory using
+	 	'require and friends.
+	 	
+		@param directory the directory containing the file, used
+			as a classpath root
+			
+		@param filename the name of the script file in that
+			directory to run
+	 */
+
+	private void run1(final File directory, final String filename) {
+		try {
+			new ClassLoaderInvoker<Object>() {
+				@Override
+				public Object invoke() {
+					try {
+						Compiler.loadFile(new File(directory, filename)
+								  		  .getCanonicalPath()
+								 		 );
+					} catch (Exception exn) {
+						getProxy().error(exn.getMessage());
+						exn.printStackTrace();
+					}
+					
+					return null;
+				}
+			}.doit(directory);
+		} catch (MalformedURLException exn) {
+			getProxy().error(exn.getMessage());
+			exn.printStackTrace();
+		}
+	}
 
 	/**	Run a script from a file in a given directory,
 	 	the latter provided for a search path. This
@@ -61,7 +96,7 @@ public class ClojureEngineImpl extends EngineImpl {
 	 */
 
 	public void runScript(String directory, String filename) {
-		// TODO Auto-generated method stub
+		run1(new File(directory), filename);
 	}
 
 	/**	Run a script file with a path rooted on the
@@ -74,14 +109,7 @@ public class ClojureEngineImpl extends EngineImpl {
 		if (itsPlaceHolderDirectory00 == null) {
 			getProxy().error("engine not loaded: place-holder problem?");
 		} else {
-			try {
-				Compiler.loadFile(new File(itsPlaceHolderDirectory00, name)
-								  .getCanonicalPath()
-								 );
-			} catch (Exception exn) {
-				getProxy().error(exn.getMessage());
-				exn.printStackTrace();
-			}
+			run1(itsPlaceHolderDirectory00, name);
 		}
 	}
 
@@ -106,24 +134,9 @@ public class ClojureEngineImpl extends EngineImpl {
 		return null;
 	}
 
-	//// XXX TEST!
-	private void extendClasspath(File newDir) throws Exception {
-		ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
-		
-		URLClassLoader urlClassLoader =
-			new URLClassLoader(new URL[] { newDir.toURI().toURL() },  currentClassLoader);
-		
-		Thread.currentThread().setContextClassLoader(urlClassLoader);
-	}
-
 	@Override
-	public void setupEngineOnPlaceHolder(String directory) throws IOException {
-		try {
-			extendClasspath(new File(directory));
-			itsPlaceHolderDirectory00 = directory;
-		} catch (Exception exn) {
-			throw new IOException("error extending classpath", exn);
-		}
+	public void setupEngineOnPlaceHolder(String directory) {
+		itsPlaceHolderDirectory00 = new File(directory);
 	}
 
 	@Override
@@ -138,6 +151,15 @@ public class ClojureEngineImpl extends EngineImpl {
 		return null;
 	}
 	
+	/**	Raw evaluation. We could establish the classpath for the
+	 	current root before running this, but the encumbent
+	 	Groovy and Python systems don't do this.
+	 	
+		@param statement the Clojure statement to evaluate
+		@return the result of the evaluation
+		@throws Exception if evaluation throws an exception
+	 */
+
 	private Object evaluate(String statement) throws Exception {
 		try {
 			Reader reader = new StringReader(statement);
