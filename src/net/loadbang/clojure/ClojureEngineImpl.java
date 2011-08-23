@@ -23,6 +23,8 @@ import clojure.lang.Var;
 import com.cycling74.max.Atom;
 import com.cycling74.max.MaxObject;
 
+/* TODO spurious change. */
+
 public class ClojureEngineImpl extends EngineImpl {
 	static final Symbol USER_SYM = Symbol.create("user");
 	static final Var IN_NS = RT.var("clojure.core", "in-ns");
