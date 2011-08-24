@@ -57,6 +57,9 @@ public class ClojureEngineImpl extends EngineImpl {
 	 	libraries can be found relative to the directory using
 	 	'require and friends.
 	 	
+	 	<P>We also set up some bindings (including max/maxObject)
+	 	for the invocation.
+	 	
 		@param directory the directory containing the file, used
 			as a classpath root
 			
@@ -66,13 +69,37 @@ public class ClojureEngineImpl extends EngineImpl {
 
 	private void run1(final File directory, final String filename) {
 		try {
+			//	Add directory to classpath and go:
 			new ClassLoaderInvoker<Object>() {
+				private void bindAndGo() throws Exception {
+					try {
+						//	Push bindings and go:
+						new PushBindingsInvoker<Object>(getProxy(),
+														new StringReader("")
+								  					   ) {
+							@Override
+							public Object invoke() {
+								try {
+									Compiler.loadFile(new File(directory, filename)
+											  		  .getCanonicalPath()
+											 		 );
+								} catch (Exception exn) {
+									getProxy().error(exn.getMessage());
+									exn.printStackTrace();
+								}
+								return null;
+							}
+						}.doit();
+					} catch (Exception exn) {
+						getProxy().error(exn.getMessage());
+						exn.printStackTrace();
+					}
+				}
+
 				@Override
 				public Object invoke() {
 					try {
-						Compiler.loadFile(new File(directory, filename)
-								  		  .getCanonicalPath()
-								 		 );
+						bindAndGo();
 					} catch (Exception exn) {
 						getProxy().error(exn.getMessage());
 						exn.printStackTrace();
@@ -95,8 +122,13 @@ public class ClojureEngineImpl extends EngineImpl {
 	 	@see net.loadbang.scripting.Engine#runScript(java.lang.String, java.lang.String)
 	 */
 
-	public void runScript(String directory, String filename) {
-		run1(new File(directory), filename);
+	public void runScript(final String directory, final String filename) {
+		try {
+			run1(new File(directory), filename);
+		} catch (Exception exn) {
+			getProxy().error(exn.getMessage());
+			exn.printStackTrace();
+		}
 	}
 
 	/**	Run a script file with a path rooted on the
@@ -161,6 +193,18 @@ public class ClojureEngineImpl extends EngineImpl {
 	 */
 
 	private Object evaluate(String statement) throws Exception {
+		return new PushBindingsInvoker<Object>(getProxy(),
+											   new StringReader(statement)
+											  ) {
+			@Override
+			public Object invoke() throws Exception {
+				IN_NS.invoke(USER_SYM);
+				return Compiler.load(getReader());
+			}
+		}.doit();
+	}
+
+	private Object evaluateXXX(String statement) throws Exception {
 		try {
 			Reader reader = new StringReader(statement);
 	
