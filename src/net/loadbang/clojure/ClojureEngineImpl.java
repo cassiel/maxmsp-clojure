@@ -4,41 +4,35 @@
 package net.loadbang.clojure;
 
 import java.io.File;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
 import java.io.StringReader;
 import java.net.MalformedURLException;
 
 import net.loadbang.scripting.EngineImpl;
 import net.loadbang.scripting.MaxObjectProxy;
 import net.loadbang.scripting.util.Converters;
-
 import clojure.lang.Compiler;
-import clojure.lang.LineNumberingPushbackReader;
-import clojure.lang.Namespace;
-import clojure.lang.RT;
-import clojure.lang.Symbol;
-import clojure.lang.Var;
 
 import com.cycling74.max.Atom;
 import com.cycling74.max.MaxObject;
 
 public class ClojureEngineImpl extends EngineImpl {
-	static final Symbol USER_SYM = Symbol.create("user");
-	static final Var IN_NS = RT.var("clojure.core", "in-ns");
-	static final Namespace MAX_NS = Namespace.findOrCreate(Symbol.intern("max"));
-	static final Var MAX_OBJECT = Var.intern(MAX_NS, Symbol.intern("maxObject"), null);
+	//static final Symbol USER_SYM = Symbol.create("user");
+	//static final Var IN_NS = RT.var("clojure.core", "in-ns");
+	//static final Namespace MAX_NS = Namespace.findOrCreate(Symbol.intern("max"));
+	//static final Var MAX_OBJECT = Var.intern(MAX_NS, Symbol.intern("maxObject"), new BogusMaxObjectProxy());
 
 	/**	The directory for any place-holder. */
 	private File itsPlaceHolderDirectory00;
+	private NSOwner itsNSOwner;
 	
 	/**	Create an instance of a Clojure engine.
 
 		@param proxy a proxy for the owning {@link MaxObject}.
 	 */
 
-	public ClojureEngineImpl(MaxObjectProxy proxy) {
+	public ClojureEngineImpl(MaxObjectProxy proxy, NSOwner nsOwner) {
 		super(proxy);
+		itsNSOwner = nsOwner;
 	}
 
 	/**	Clear the environment. Since we only have one Clojure
@@ -74,7 +68,7 @@ public class ClojureEngineImpl extends EngineImpl {
 				private void bindAndGo() throws Exception {
 					try {
 						//	Push bindings and go:
-						new PushBindingsInvoker<Object>(getProxy(),
+						new PushBindingsInvoker<Object>(getProxy(), itsNSOwner,
 														new StringReader("")
 								  					   ) {
 							@Override
@@ -193,35 +187,34 @@ public class ClojureEngineImpl extends EngineImpl {
 	 */
 
 	private Object evaluate(String statement) throws Exception {
-		return new PushBindingsInvoker<Object>(getProxy(),
+		return new PushBindingsInvoker<Object>(getProxy(), itsNSOwner,
 											   new StringReader(statement)
 											  ) {
 			@Override
 			public Object invoke() throws Exception {
-				IN_NS.invoke(USER_SYM);
 				return Compiler.load(getReader());
 			}
 		}.doit();
 	}
 
-	private Object evaluateXXX(String statement) throws Exception {
-		try {
-			Reader reader = new StringReader(statement);
-	
-			Var.pushThreadBindings(
-					RT.map(MAX_OBJECT, getProxy(),
-						   RT.CURRENT_NS, RT.CURRENT_NS.deref(),
-						   RT.IN, new LineNumberingPushbackReader(reader),
-						   RT.OUT, new OutputStreamWriter(System.out),
-						   RT.ERR, new OutputStreamWriter(System.err))
-					);
-				
-			IN_NS.invoke(USER_SYM);
-			return Compiler.load(reader);
-		} finally {
-			Var.popThreadBindings();
-		}
-	}
+//	private Object evaluateXXX(String statement) throws Exception {
+//		try {
+//			Reader reader = new StringReader(statement);
+//	
+//			Var.pushThreadBindings(
+//					RT.map(MAX_OBJECT, getProxy(),
+//						   RT.CURRENT_NS, RT.CURRENT_NS.deref(),
+//						   RT.IN, new LineNumberingPushbackReader(reader),
+//						   RT.OUT, new OutputStreamWriter(System.out),
+//						   RT.ERR, new OutputStreamWriter(System.err))
+//					);
+//				
+//			IN_NS.invoke(Symbol.create(itsNSOwner.getNS()));
+//			return Compiler.load(reader);
+//		} finally {
+//			Var.popThreadBindings();
+//		}
+//	}
 
 	@Override
 	public void exec(String statement) {
