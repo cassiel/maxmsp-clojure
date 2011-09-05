@@ -16,18 +16,28 @@ import clojure.lang.Var;
 abstract public class PushBindingsInvoker<T> {
 	abstract public T invoke() throws Exception;
 	
-	static final Symbol USER_SYM = Symbol.create("user");
 	static final Var IN_NS = RT.var("clojure.core", "in-ns");
 	static final Namespace MAX_NS = Namespace.findOrCreate(Symbol.intern("max"));
 	static final Var MAX_OBJECT = Var.intern(MAX_NS, Symbol.intern("maxObject"), null);
-
+	static final Symbol CLOJURE_CORE = Symbol.intern("clojure.core");
+	static final Symbol USER = Symbol.intern("user");
+	
 	private Reader itsReader;
 	private MaxObjectProxy itsProxy;
-	
+	private NSOwner itsNSOwner;
+	private static NamespaceTracker theNamespaceTracker = new NamespaceTracker();
+
+	static {
+		theNamespaceTracker.firstEncounter(USER);
+			// USER has clojure.core referred already, so mark it as done.
+	}
+
 	public PushBindingsInvoker(MaxObjectProxy proxy,
+							   NSOwner nsOwner,
 							   Reader reader
 							  ) {
 		itsProxy = proxy;
+		itsNSOwner = nsOwner;
 		itsReader = reader;
 	}
 
@@ -39,8 +49,15 @@ abstract public class PushBindingsInvoker<T> {
 					RT.OUT, new OutputStreamWriter(System.out),
 					RT.ERR, new OutputStreamWriter(System.err))
 		);
-			
-		IN_NS.invoke(USER_SYM);
+
+		Symbol sym = Symbol.intern(itsNSOwner.getNS());
+		IN_NS.invoke(sym);
+		
+		if (theNamespaceTracker.firstEncounter(sym)) {
+			System.out.println("First encounter: " + sym);
+			Var refer = RT.var("clojure.core", "refer");
+			refer.invoke(CLOJURE_CORE);
+		}
 
 		try {
 			return invoke();
