@@ -30,8 +30,8 @@ public class Clojure extends ScriptEngineBase implements NSOwner {
 	static int theNSNameCounter = 0;
 
 	/**	Generate a unique namespace name for this MaxObject instance.
-	 	The instance can always replace it with something more
-	 	accessible.
+	 	The instance can always replace it with something better
+	 	known, such as for sharing values between MaxObjects.
 	 	
 		@return the unique namespace name
 	 */

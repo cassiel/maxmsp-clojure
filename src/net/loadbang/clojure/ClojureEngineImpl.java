@@ -6,24 +6,26 @@ package net.loadbang.clojure;
 import java.io.File;
 import java.io.StringReader;
 import java.net.MalformedURLException;
+import java.util.List;
 
 import net.loadbang.scripting.EngineImpl;
 import net.loadbang.scripting.MaxObjectProxy;
 import net.loadbang.scripting.util.Converters;
 import clojure.lang.Compiler;
+import clojure.lang.Namespace;
+import clojure.lang.RT;
+import clojure.lang.Symbol;
+import clojure.lang.Var;
 
 import com.cycling74.max.Atom;
 import com.cycling74.max.MaxObject;
 
 public class ClojureEngineImpl extends EngineImpl {
-	//static final Symbol USER_SYM = Symbol.create("user");
-	//static final Var IN_NS = RT.var("clojure.core", "in-ns");
-	//static final Namespace MAX_NS = Namespace.findOrCreate(Symbol.intern("max"));
-	//static final Var MAX_OBJECT = Var.intern(MAX_NS, Symbol.intern("maxObject"), new BogusMaxObjectProxy());
-
 	/**	The directory for any place-holder. */
 	private File itsPlaceHolderDirectory00;
 	private NSOwner itsNSOwner;
+	
+	private ClojureConverters itsConverters;
 	
 	/**	Create an instance of a Clojure engine.
 
@@ -33,6 +35,7 @@ public class ClojureEngineImpl extends EngineImpl {
 	public ClojureEngineImpl(MaxObjectProxy proxy, NSOwner nsOwner) {
 		super(proxy);
 		itsNSOwner = nsOwner;
+		itsConverters = new ClojureConverters();
 	}
 
 	/**	Clear the environment. Since we only have one Clojure
@@ -197,25 +200,6 @@ public class ClojureEngineImpl extends EngineImpl {
 		}.doit();
 	}
 
-//	private Object evaluateXXX(String statement) throws Exception {
-//		try {
-//			Reader reader = new StringReader(statement);
-//	
-//			Var.pushThreadBindings(
-//					RT.map(MAX_OBJECT, getProxy(),
-//						   RT.CURRENT_NS, RT.CURRENT_NS.deref(),
-//						   RT.IN, new LineNumberingPushbackReader(reader),
-//						   RT.OUT, new OutputStreamWriter(System.out),
-//						   RT.ERR, new OutputStreamWriter(System.err))
-//					);
-//				
-//			IN_NS.invoke(Symbol.create(itsNSOwner.getNS()));
-//			return Compiler.load(reader);
-//		} finally {
-//			Var.popThreadBindings();
-//		}
-//	}
-
 	@Override
 	public void exec(String statement) {
 		try {
@@ -229,9 +213,40 @@ public class ClojureEngineImpl extends EngineImpl {
 	public void eval(String statement) {
 		try {
 			Object obj = evaluate(statement);
+			System.out.println(obj.getClass());
 			getProxy().outlet(0, obj);
 		} catch (Exception exn) {
 			getProxy().error(exn.toString());
+		}
+	}
+	
+	private Var retrieveFnAsVar(String fn) throws Exception {
+		String format = "Function %s not found in namespace %s";
+		String ns, rawFn;
+
+		if (fn.indexOf('/') == -1) {
+			ns = itsNSOwner.getNS();
+			rawFn = fn;
+		} else {
+			String[] names = fn.split("/");
+			ns = names[0];
+			rawFn = names[1];
+		}
+	
+		//Var var = RT.var(ns, rawFn);
+		Namespace namespace = Namespace.find(Symbol.intern(ns));
+		
+		if (namespace == null) {
+			throw new IllegalArgumentException("No such namespace: " + ns);
+		}
+		
+		Var var = namespace.findInternedVar(Symbol.intern(rawFn));
+
+		if (var == null) {
+			String msg = String.format(format, rawFn, ns);
+			throw new NoSuchMethodException(msg);
+		} else {
+			return var;
 		}
 	}
 
@@ -239,6 +254,12 @@ public class ClojureEngineImpl extends EngineImpl {
 	 	We frig this slightly to allow a special form: if the "fn" begins
 	 	with "(" we assume the entire input is a Clojure form and do
 	 	an eval(), ignoring the inlet number.
+	 	
+	 	<P>While "run" and "script" temporarily extend the classpath
+	 	in order to load libraries (using the place-holder and the location
+	 	of the script respectively), we don't do that here, partly due to
+	 	a possibly misconceived notion of performance: we want one-liners
+	 	to be fast (especially the Max-style unbracketted ones).
 
 	 	@see net.loadbang.scripting.EngineImpl#invoke(java.lang.String, java.lang.Integer, com.cycling74.max.Atom[])
 	 */
@@ -247,8 +268,30 @@ public class ClojureEngineImpl extends EngineImpl {
 	public void invoke(String fn, Integer inlet00, Atom[] args) {
 		if (fn.startsWith("(")) {
 			eval(fn + " " + Atom.toOneString(args));
-		} else {
-			//	TODO
+		} else {		//	Complicated: function invocation. Args are int/float/string,
+						//	but we should identify :foo and 'foo (possibly even in
+						//	namespaces).
+			final String fn2 = fn;
+			
+			try {
+				final List<Object> argObjects = itsConverters.atomsToObjects(args, 0);
+					
+				Object result =
+					new PushBindingsInvoker<Object>(getProxy(), itsNSOwner,
+												    new StringReader("")
+												   ) {
+					@Override
+					public Object invoke() throws Exception {
+						//	We have to retrieve once we've set up bindings and namespace:
+						Var var = retrieveFnAsVar(fn2);
+						return var.applyTo(RT.seq(argObjects));
+					}
+				}.doit();
+	
+				getProxy().outlet(0, result);
+			} catch (Exception exn) {
+				getProxy().error(exn.toString());
+			}
 		}
 	}
 

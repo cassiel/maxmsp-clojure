@@ -13,6 +13,14 @@ import clojure.lang.RT;
 import clojure.lang.Symbol;
 import clojure.lang.Var;
 
+/**	A helper class for invoking operations having pushed some
+ 	common bindings.
+ 
+	@author Nick Rothwell, nick@cassiel.com / nick@loadbang.net
+
+	@param <T> the type of value returned by the invocation
+ */
+
 abstract public class PushBindingsInvoker<T> {
 	abstract public T invoke() throws Exception;
 	
