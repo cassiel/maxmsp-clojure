@@ -212,9 +212,9 @@ public class ClojureEngineImpl extends EngineImpl {
 	@Override
 	public void eval(String statement) {
 		try {
-			Object obj = evaluate(statement);
-			System.out.println(obj.getClass());
-			getProxy().outlet(0, obj);
+			Object obj00 = evaluate(statement);
+			//System.out.println(obj00.getClass());
+			getProxy().outlet(0, obj00);
 		} catch (Exception exn) {
 			getProxy().error(exn.toString());
 		}
@@ -266,7 +266,8 @@ public class ClojureEngineImpl extends EngineImpl {
 
 	@Override
 	public void invoke(String fn, Integer inlet00, Atom[] args) {
-		if (fn.startsWith("(")) {
+		//	Pick common initial characters meaning "not a function".
+		if (fn.startsWith("(") || fn.startsWith("[") || fn.startsWith("@")) {
 			eval(fn + " " + Atom.toOneString(args));
 		} else {		//	Complicated: function invocation. Args are int/float/string,
 						//	but we should identify :foo and 'foo (possibly even in
