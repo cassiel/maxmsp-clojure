@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- $Source$ -->
+<!-- $Id$ -->
+
+<!DOCTYPE project [
+	<!ENTITY ant-defs  SYSTEM "../../DEVELOPMENT_0/mxj-development/basis/ant-defs.xml">
+]>
+
+<project name="MXJClojure" default="usage">
+	&ant-defs;
+	
+	<property file="properties/net/loadbang/clojure/props/VERSION.properties" />
+	
+	<path id="cp">
+		<!-- QUICK HACKS: -->
+		<pathelement location="../../DEVELOPMENT_0/misc-development/3rd-party/java/junit/junit-4.4.jar" />
+		<pathelement location="../../DEVELOPMENT_0/misc-development/3rd-party/java/jmock/hamcrest-library-1.1.jar" />
+		<pathelement location="../../DEVELOPMENT_0/misc-development/3rd-party/java/jmock/jmock-2.4.0.jar" />
+		<pathelement location="../../DEVELOPMENT_0/misc-development/3rd-party/java/jmock/jmock-junit4-2.4.0.jar" />
+		<pathelement location="/Media/MaxJARs/support/clojure/clojure-1.2.1.jar" />
+		<pathelement location="/Media/MaxJARs/loadbang/net.loadbang.lib-1.7.0.jar" />
+		<pathelement location="/Media/MaxJARs/loadbang/net.loadbang.scripting-1.1.jar" />
+		<pathelement location="../../DEVELOPMENT_0/mxj-development/basis/max.jar" />
+		<!--<pathelement path="${git_JMOCK.JAR}:${git_JUNIT.JAR}:${git_JMOCK-JUNIT.JAR}:${git_HAMCREST.JAR}" />-->
+		<!--<pathelement location="${MAX.JAR}" />-->
+		<!--<pathelement location="${LOADBANG.CLASSES}" />-->
+		<!--<pathelement location="${SCRIPTING.CLASSES}" />-->
+	</path>
+	
+	<target name="usage">
+		<echo message="compile: compile to a temporary directory" />
+		<echo message="unit-tests: run unit tests" />
+		<echo message="jar.Clojure: build JAR file for loadbang.net Clojure library" />
+		<echo message="javadoc.Clojure: Javadoc for net.loadbang.clojure" />
+		<echo message="package: create a release" />
+		<echo message="usage: print this message" />
+	</target>
+	
+	<target name="compile">
+		<__compile classpath-id="cp" src-dir="./src" />
+	</target>
+
+	<target
+		name="unit-tests"
+		description="run unit tests"
+		depends="compile"
+	>
+		<__unit-tests classpath-id="cp" />
+	</target>
+
+	<target name="jar.Clojure" depends="compile" description="build JAR file for loadbang.net Clojure library">
+		<__jar jar-name="net.loadbang.clojure" title="loadbang.net Clojure library" version="${VERSION}" />
+	</target>
+	
+	<target name="max.deploy" depends="jar.Clojure" description="deploy Clojure JAR for Max">
+		<copy
+			file="${BUILD_OUTPUT_COMMON}/net.loadbang.clojure-${VERSION}.jar"
+			todir="${MAX5_JAVA_LIB}"
+		/>
+	</target>
+	
+	<target name="javadoc.Clojure" description="Javadoc for net.loadbang.clojure">
+		<__javadoc
+			javadoc-packages="net.loadbang.clojure, net.loadbang.clojure.*"
+			javadoc-classpath="${LOADBANG.CLASSES}:${SCRIPTING.CLASSES}:${MAX.JAR}"
+		/>
+	</target>
+	
+	<property name="PACKAGE_NAME" value="net.loadbang.clojure-${VERSION}-${RELEASE_DATE}" />
+
+	<!--
+	<target
+		name="package"
+		depends="GLOBAL.clean, GLOBAL.jar.lib, GLOBAL.jar.scripting, jar.Clojure, javadoc.Clojure"
+	>
+		<zip destfile="${BUILD_OUTPUT_COMMON}/${PACKAGE_NAME}.zip">
+			<zipfileset dir="." prefix="${PACKAGE_NAME}">
+				<include name="README" />
+			</zipfileset>
+
+			<zipfileset dir="../MXJ-basis" prefix="${PACKAGE_NAME}">
+				<include name="COPYING*" />
+			</zipfileset>
+			
+			<zipfileset dir="${BUILD_OUTPUT_COMMON}" prefix="${PACKAGE_NAME}/jar">
+				<include name="net.loadbang.lib-*.jar" />
+				<include name="net.loadbang.scripting-*.jar" />
+				<include name="net.loadbang.clojure-*.jar" />
+			</zipfileset>
+			
+			<zipfileset dir="../3rd-party" prefix="${PACKAGE_NAME}/jar">
+				<include name="log4j-*.jar" />
+			</zipfileset>
+
+			<zipfileset dir="../3rd-party/jython-2.5b3" prefix="${PACKAGE_NAME}/jar">
+				<include name="jython.jar" />
+			</zipfileset>
+			
+			<zipfileset dir="../3rd-party/jython-2.5b3/Lib" prefix="${PACKAGE_NAME}/jar/Lib">
+				<exclude name="**/CVS*" />
+				<exclude name="**/*.class" />
+			</zipfileset>
+
+			<zipfileset dir="${MAX_SEARCH}/loadbang.net/jython" prefix="${PACKAGE_NAME}/examples">
+				<exclude name="**/*.class" />
+				<exclude name="**/CVS*" />
+			</zipfileset>
+
+			<zipfileset dir="." prefix="${PACKAGE_NAME}/src">
+				<exclude name=".classes/**" />
+				<exclude name=".BUILD/**" />
+				<include name="**/*.java" />
+				<include name="**/*.properties" />
+				<include name=".classpath" />
+				<include name=".project" />
+				<include name="build.xml" />
+			</zipfileset>
+			
+			<zipfileset dir=".BUILD/javadoc" prefix="${PACKAGE_NAME}/javadoc" />
+		</zip>
+	</target>
+	-->
+
+</project>
